@@ -274,7 +274,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
 
               <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
-                {SERVICES_DATA.map((service) => {
+                {SERVICES_DATA.filter((s) => s.itemType !== 'product' && s.duration > 0).map((service) => {
                   const isSelected = selectedServices.some((s) => s.id === service.id);
                   return (
                     <div

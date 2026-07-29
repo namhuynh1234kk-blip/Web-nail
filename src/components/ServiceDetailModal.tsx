@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Clock, CheckCircle, Sparkles, Calendar, ArrowRight } from 'lucide-react';
+import { X, Clock, CheckCircle, Sparkles, Calendar, ArrowRight, ShoppingBag, PackageCheck } from 'lucide-react';
 import { ServiceItem } from '../types';
 
 interface ServiceDetailModalProps {
@@ -14,6 +14,8 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
   onSelectBooking,
 }) => {
   if (!service) return null;
+
+  const isProduct = service.itemType === 'product' || service.duration === 0;
 
   const formattedPrice = new Intl.NumberFormat('vi-VN').format(service.price) + 'đ';
   const formattedOriginalPrice = service.originalPrice
@@ -49,7 +51,9 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
 
           <div className="absolute bottom-4 left-6 right-6 text-white">
             <span className="inline-block px-3 py-1 bg-[#c9a86c] text-[10px] font-bold uppercase tracking-wider rounded-full mb-1">
-              {service.category === 'spa'
+              {isProduct
+                ? 'Sản Phẩm Cao Cấp Lumé'
+                : service.category === 'spa'
                 ? 'Spa Body & Massage'
                 : service.category === 'facial'
                 ? 'Chăm Sóc Da Facial'
@@ -73,8 +77,17 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
           {/* Price & Duration Strip */}
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-[#ebe3d9] shadow-xs">
             <div className="flex items-center gap-2 text-sm text-[#6b5c54]">
-              <Clock className="w-4 h-4 text-[#c9a86c]" />
-              <span>Thời gian thực hiện: <strong className="text-[#3a2f2a] font-semibold">{service.duration} phút</strong></span>
+              {isProduct ? (
+                <>
+                  <PackageCheck className="w-4 h-4 text-[#c9a86c]" />
+                  <span>Sản phẩm chính hãng: <strong className="text-[#3a2f2a] font-semibold">Giao hàng toàn quốc</strong></span>
+                </>
+              ) : (
+                <>
+                  <Clock className="w-4 h-4 text-[#c9a86c]" />
+                  <span>Thời gian thực hiện: <strong className="text-[#3a2f2a] font-semibold">{service.duration} phút</strong></span>
+                </>
+              )}
             </div>
 
             <div className="flex items-baseline gap-2">
@@ -89,11 +102,11 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Service Description */}
+          {/* Service / Product Description */}
           <div>
             <h3 className="font-serif text-lg font-semibold text-[#3a2f2a] mb-2 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#c9a86c]" />
-              <span>Mô tả liệu trình</span>
+              <span>{isProduct ? 'Thông tin sản phẩm' : 'Mô tả liệu trình'}</span>
             </h3>
             <p className="text-sm text-[#6b5c54] leading-relaxed">
               {service.description}
@@ -112,8 +125,8 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
             </div>
           )}
 
-          {/* Protocol Steps (Các bước thực hiện) */}
-          {service.protocolSteps && service.protocolSteps.length > 0 && (
+          {/* Protocol Steps (Các bước thực hiện - Only for services) */}
+          {!isProduct && service.protocolSteps && service.protocolSteps.length > 0 && (
             <div>
               <h3 className="font-serif text-lg font-semibold text-[#3a2f2a] mb-3">
                 Quy trình thực hiện ({service.protocolSteps.length} bước chuẩn)
@@ -137,7 +150,7 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
           {service.benefits && service.benefits.length > 0 && (
             <div>
               <h3 className="font-serif text-lg font-semibold text-[#3a2f2a] mb-2">
-                Hiệu quả mang lại
+                {isProduct ? 'Công dụng nổi bật' : 'Hiệu quả mang lại'}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {service.benefits.map((benefit, idx) => (
@@ -167,8 +180,17 @@ export const ServiceDetailModal: React.FC<ServiceDetailModalProps> = ({
             }}
             className="px-6 py-2.5 rounded-full text-xs sm:text-sm font-semibold bg-[#c9a86c] hover:bg-[#b08d4f] text-white shadow-md flex items-center gap-2 cursor-pointer transition-all"
           >
-            <Calendar className="w-4 h-4" />
-            <span>Đặt dịch vụ này ({formattedPrice})</span>
+            {isProduct ? (
+              <>
+                <ShoppingBag className="w-4 h-4" />
+                <span>Đặt Mua Sản Phẩm ({formattedPrice})</span>
+              </>
+            ) : (
+              <>
+                <Calendar className="w-4 h-4" />
+                <span>Đặt Lịch Dịch Vụ Này ({formattedPrice})</span>
+              </>
+            )}
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

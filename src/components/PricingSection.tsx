@@ -28,6 +28,8 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
 
   const filteredServices = useMemo(() => {
     return SERVICES_DATA.filter((service) => {
+      // Only include actual services (not physical products)
+      const isActualService = service.itemType !== 'product' && service.duration > 0;
       const matchesCategory =
         selectedCategory === 'all' || service.category === selectedCategory;
       const query = searchQuery.toLowerCase().trim();
@@ -37,7 +39,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
         service.description.toLowerCase().includes(query) ||
         (service.subtitle && service.subtitle.toLowerCase().includes(query));
 
-      return matchesCategory && matchesSearch;
+      return isActualService && matchesCategory && matchesSearch;
     });
   }, [selectedCategory, searchQuery]);
 

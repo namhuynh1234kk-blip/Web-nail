@@ -1,4 +1,4 @@
-export type UserRole = 'customer' | 'staff' | 'admin';
+export type UserRole = 'customer' | 'staff' | 'sales' | 'accountant' | 'admin';
 
 export interface RedeemedVoucher {
   id: string;
@@ -32,9 +32,13 @@ export interface User {
   rewardPoints?: number;
   redeemedVouchers?: RedeemedVoucher[];
   pointTransactions?: PointTransaction[];
+  isApproved?: boolean; // Required for staff accounts (must be approved by Admin)
+  registeredAt?: string;
 }
 
 export type ServiceCategory = 'all' | 'spa' | 'facial' | 'nail' | 'hair';
+
+export type CatalogItemType = 'service' | 'product';
 
 export interface ServiceItem {
   id: string;
@@ -43,7 +47,7 @@ export interface ServiceItem {
   subtitle?: string;
   price: number;
   originalPrice?: number;
-  duration: number; // minutes
+  duration: number; // minutes for services, or volume/weight for products
   icon: string;
   description: string;
   image: string;
@@ -51,6 +55,8 @@ export interface ServiceItem {
   protocolSteps?: string[];
   targetSkinOrBody?: string;
   benefits?: string[];
+  itemType?: CatalogItemType; // 'service' (Đặt lịch) vs 'product' (Mua hàng)
+  stockQuantity?: number;
 }
 
 export interface Specialist {
@@ -75,6 +81,50 @@ export interface Promotion {
   originalPrice?: number;
   discountedPrice?: number;
   servicesIncluded?: string[];
+  itemType?: CatalogItemType;
+}
+
+export type OrderStatus =
+  | 'pending_confirmation' // Chờ Sales xác nhận
+  | 'confirmed'            // Sales đã xác nhận
+  | 'shipping'             // Đang giao hàng (đối với sản phẩm)
+  | 'pending_payment'      // Chờ kế toán duyệt thanh toán
+  | 'paid'                 // Kế toán đã xác nhận thu tiền / xuất hóa đơn
+  | 'in_progress'          // KTV đang thực hiện dịch vụ
+  | 'completed'            // Hoàn tất đơn hàng / dịch vụ
+  | 'cancelled';           // Đã hủy
+
+export interface ProductOrderItem {
+  id: string;
+  title: string;
+  price: number;
+  quantity: number;
+  image: string;
+  category?: string;
+}
+
+export interface ProductOrder {
+  id: string;
+  userId?: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  shippingAddress: string;
+  items: ProductOrderItem[];
+  subtotal: number;
+  shippingFee: number;
+  discountAmount: number;
+  finalPrice: number;
+  paymentMethod: 'cod' | 'bank_transfer' | 'momo';
+  paymentStatus: 'unpaid' | 'paid';
+  invoiceIssued?: boolean;
+  invoiceCode?: string;
+  notes?: string;
+  status: OrderStatus;
+  createdAt: string;
+  salesPersonName?: string;
+  accountantName?: string;
+  salesNotes?: string;
 }
 
 export interface Appointment {
@@ -93,9 +143,15 @@ export interface Appointment {
   finalPrice: number;
   promoCode?: string;
   notes?: string;
-  status: 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+  status: OrderStatus;
+  paymentStatus?: 'unpaid' | 'paid';
+  paymentMethod?: 'cash' | 'bank_transfer' | 'momo' | 'card';
+  invoiceIssued?: boolean;
+  invoiceCode?: string;
   createdAt: string;
   branch: string;
+  salesPersonName?: string;
+  accountantName?: string;
 }
 
 export interface Review {
@@ -108,3 +164,4 @@ export interface Review {
   comment: string;
   verified: boolean;
 }
+

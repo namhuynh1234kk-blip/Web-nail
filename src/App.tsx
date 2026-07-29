@@ -1,21 +1,32 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { Header } from './components/Header';
-import { Hero } from './components/Hero';
-import { ServicesSection } from './components/ServicesSection';
-import { PricingSection } from './components/PricingSection';
-import { PromotionsSection } from './components/PromotionsSection';
-import { ReviewsSection } from './components/ReviewsSection';
-import { FacilitySection } from './components/FacilitySection';
+import { CategoryCircles } from './components/CategoryCircles';
+import { HeroDealsBanners } from './components/HeroDealsBanners';
+import { AboutUsSection } from './components/AboutUsSection';
+import { BestSellersSection } from './components/BestSellersSection';
+import { SummerGlowCountdown } from './components/SummerGlowCountdown';
+import { MarqueeTicker } from './components/MarqueeTicker';
+import { DealsOfDaySection } from './components/DealsOfDaySection';
+import { NewArrivalsSection } from './components/NewArrivalsSection';
+import { TestimonialsSection } from './components/TestimonialsSection';
+import { NewsBlogsSection } from './components/NewsBlogsSection';
+import { InstagramGallery } from './components/InstagramGallery';
+import { FaqSection } from './components/FaqSection';
+import { FeaturesAndNewsletter } from './components/FeaturesAndNewsletter';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { FloatingActions } from './components/FloatingActions';
 import { ServiceDetailModal } from './components/ServiceDetailModal';
 import { BookingModal } from './components/BookingModal';
+import { ProductPurchaseModal } from './components/ProductPurchaseModal';
 import { AppointmentLookupModal } from './components/AppointmentLookupModal';
 import { AuthModal } from './components/AuthModal';
 import { CustomerPortalModal } from './components/CustomerPortalModal';
 import { StaffPortalModal } from './components/StaffPortalModal';
+import { SalesPortalModal } from './components/SalesPortalModal';
+import { AccountantPortalModal } from './components/AccountantPortalModal';
 import { AdminPortalModal } from './components/AdminPortalModal';
 import { ServiceItem, Appointment } from './types';
 
@@ -25,9 +36,13 @@ function AppContent() {
   // Modal states
   const [selectedServiceDetail, setSelectedServiceDetail] = useState<ServiceItem | null>(null);
   
+  // Booking Form (Dịch vụ)
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingInitialServiceId, setBookingInitialServiceId] = useState<string | undefined>(undefined);
   const [bookingInitialPromoCode, setBookingInitialPromoCode] = useState<string | undefined>(undefined);
+
+  // Purchase Form (Sản phẩm Mua Hàng)
+  const [selectedProductForPurchase, setSelectedProductForPurchase] = useState<ServiceItem | null>(null);
 
   const [lookupModalOpen, setLookupModalOpen] = useState(false);
 
@@ -35,10 +50,12 @@ function AppContent() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [customerPortalOpen, setCustomerPortalOpen] = useState(false);
   const [staffPortalOpen, setStaffPortalOpen] = useState(false);
+  const [salesPortalOpen, setSalesPortalOpen] = useState(false);
+  const [accountantPortalOpen, setAccountantPortalOpen] = useState(false);
   const [adminPortalOpen, setAdminPortalOpen] = useState(false);
 
-  // Filter category state for Pricing Section
-  const [selectedPricingCategory, setSelectedPricingCategory] = useState<string>('all');
+  // Selected Category
+  const [activeCategory, setActiveCategory] = useState('all');
 
   // Open appropriate portal according to logged in user role
   const handleOpenPortal = () => {
@@ -51,34 +68,28 @@ function AppContent() {
       setAdminPortalOpen(true);
     } else if (currentUser.role === 'staff') {
       setStaffPortalOpen(true);
+    } else if (currentUser.role === 'sales') {
+      setSalesPortalOpen(true);
+    } else if (currentUser.role === 'accountant') {
+      setAccountantPortalOpen(true);
     } else {
       setCustomerPortalOpen(true);
     }
   };
 
-  // Open booking modal helper
+  // Open booking modal helper for services
   const handleOpenBooking = (serviceId?: string, promoCode?: string) => {
     setBookingInitialServiceId(serviceId);
     setBookingInitialPromoCode(promoCode);
     setBookingModalOpen(true);
   };
 
-  // Service selected from Pricing / Services section
-  const handleBookServiceDirectly = (service: ServiceItem) => {
-    handleOpenBooking(service.id);
-  };
-
-  // Promo code selected from Promotions section
-  const handleApplyPromoCode = (code: string) => {
-    handleOpenBooking(undefined, code);
-  };
-
-  // Handle category filter from Services section
-  const handleFilterCategoryFromServices = (category: string) => {
-    setSelectedPricingCategory(category);
-    const pricingElem = document.getElementById('pricing');
-    if (pricingElem) {
-      pricingElem.scrollIntoView({ behavior: 'smooth' });
+  // Differentiate item selection: if product -> open ProductPurchaseModal, if service -> open BookingModal
+  const handleItemSelect = (item: ServiceItem) => {
+    if (item.itemType === 'product') {
+      setSelectedProductForPurchase(item);
+    } else {
+      handleOpenBooking(item.id);
     }
   };
 
@@ -88,7 +99,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f1eb] text-[#3a2f2a] font-sans selection:bg-[#c9a86c]/30">
+    <div className="min-h-screen bg-[#f7f4ee] text-[#1f2923] font-sans selection:bg-[#2d4a3e]/20">
       {/* Header */}
       <Header
         onOpenBooking={() => handleOpenBooking()}
@@ -97,41 +108,66 @@ function AppContent() {
         onOpenPortal={handleOpenPortal}
       />
 
-      {/* Main Sections */}
-      <main>
-        {/* Hero Section */}
-        <Hero
-          onOpenBooking={() => handleOpenBooking()}
-          onViewServices={() => {
-            const servicesElem = document.getElementById('services');
-            if (servicesElem) servicesElem.scrollIntoView({ behavior: 'smooth' });
+      {/* Main Content matching video design */}
+      <main className="pt-20 sm:pt-24">
+        {/* 1. Category Circles Bar */}
+        <CategoryCircles
+          activeCategory={activeCategory}
+          onSelectCategory={(id) => {
+            setActiveCategory(id);
+            const elem = document.getElementById('best-sellers');
+            if (elem) elem.scrollIntoView({ behavior: 'smooth' });
           }}
         />
 
-        {/* Services Highlighting Section */}
-        <ServicesSection
+        {/* 2. Hero Deals Banners */}
+        <HeroDealsBanners onOpenBooking={handleOpenBooking} />
+
+        {/* 3. About Us Section */}
+        <AboutUsSection />
+
+        {/* 4. Best Sellers Products */}
+        <BestSellersSection
           onSelectService={(service) => setSelectedServiceDetail(service)}
-          onFilterCategory={handleFilterCategoryFromServices}
+          onBookService={handleItemSelect}
         />
 
-        {/* Complete Filterable Pricing Menu */}
-        <PricingSection
-          selectedCategory={selectedPricingCategory}
-          onSelectCategory={(cat) => setSelectedPricingCategory(cat)}
-          onViewDetail={(service) => setSelectedServiceDetail(service)}
-          onBookService={handleBookServiceDirectly}
+        {/* 5. Summer Glow Deals Countdown */}
+        <SummerGlowCountdown onOpenBooking={handleOpenBooking} />
+
+        {/* 6. Marquee Scrolling Ticker */}
+        <MarqueeTicker />
+
+        {/* 7. Deals of the Day */}
+        <DealsOfDaySection onBookService={handleItemSelect} />
+
+        {/* 8. New Arrival Products */}
+        <NewArrivalsSection
+          onSelectService={(service) => setSelectedServiceDetail(service)}
+          onBookService={handleItemSelect}
         />
 
-        {/* Promotions & Combo Packages */}
-        <PromotionsSection onApplyPromo={handleApplyPromoCode} />
+        {/* 9. Testimonials from Our Loyal Customers */}
+        <TestimonialsSection />
 
-        {/* Facility & Atmosphere Gallery */}
-        <FacilitySection />
+        {/* 10. Our Latest News & Blogs */}
+        <NewsBlogsSection />
 
-        {/* Customer Reviews & Form */}
-        <ReviewsSection />
+        {/* 11. Follow Us On Instagram */}
+        <InstagramGallery />
 
-        {/* Contact, Locations & Map */}
+        {/* 12. Question? Look here (FAQS) */}
+        <FaqSection
+          onOpenContact={() => {
+            const contactElem = document.getElementById('contact');
+            if (contactElem) contactElem.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+
+        {/* 13. Value Props & Newsletter */}
+        <FeaturesAndNewsletter />
+
+        {/* 14. Contact, Locations & Map */}
         <ContactSection />
       </main>
 
@@ -141,16 +177,17 @@ function AppContent() {
       {/* Floating Action Buttons */}
       <FloatingActions onOpenBooking={() => handleOpenBooking()} />
 
-      {/* Modals */}
+      {/* Service Detail Modal */}
       <ServiceDetailModal
         service={selectedServiceDetail}
         onClose={() => setSelectedServiceDetail(null)}
         onSelectBooking={(service) => {
           setSelectedServiceDetail(null);
-          handleOpenBooking(service.id);
+          handleItemSelect(service);
         }}
       />
 
+      {/* Form Đặt Lịch Hẹn (Dịch vụ Spa/Nail/Hair) */}
       <BookingModal
         isOpen={bookingModalOpen}
         initialServiceId={bookingInitialServiceId}
@@ -163,6 +200,14 @@ function AppContent() {
         onBookingSuccess={handleBookingSuccess}
       />
 
+      {/* Form Mua Hàng Sản Phẩm (Mỹ phẩm) */}
+      <ProductPurchaseModal
+        isOpen={!!selectedProductForPurchase}
+        productItem={selectedProductForPurchase}
+        onClose={() => setSelectedProductForPurchase(null)}
+      />
+
+      {/* Tra cứu lịch hẹn / Đơn hàng */}
       <AppointmentLookupModal
         isOpen={lookupModalOpen}
         onClose={() => setLookupModalOpen(false)}
@@ -186,6 +231,16 @@ function AppContent() {
         onClose={() => setStaffPortalOpen(false)}
       />
 
+      <SalesPortalModal
+        isOpen={salesPortalOpen}
+        onClose={() => setSalesPortalOpen(false)}
+      />
+
+      <AccountantPortalModal
+        isOpen={accountantPortalOpen}
+        onClose={() => setAccountantPortalOpen(false)}
+      />
+
       <AdminPortalModal
         isOpen={adminPortalOpen}
         onClose={() => setAdminPortalOpen(false)}
@@ -196,8 +251,11 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
+
